@@ -1,0 +1,97 @@
+import flash.events.MouseEvent;
+import flash.media.Sound;
+import flash.net.URLRequest;
+import flash.media.SoundChannel;
+import flash.media.SoundTransform;
+import fl.events.SliderEvent;
+import flash.events.Event;
+import flash.utils.Timer;
+import flash.events.TimerEvent;
+import flash.media.SoundLoaderContext;
+
+//Instantiation of objects
+var myMusic:Sound = new Sound(); //Instantiation
+var soundFile:URLRequest = new URLRequest('C:\\Users\\Sharanpreet\ Singh\\Downloads\\Viv2.mp3');
+var channel:SoundChannel = new SoundChannel();
+var sTransform:SoundTransform = new SoundTransform();
+var myTimer:Timer = new Timer(10);
+var songPosition:Number = 0;
+var myContext:SoundLoaderContext = new SoundLoaderContext(5000);
+myMusic.load(soundFile,myContext);
+
+//Listeners
+btnPlay.addEventListener(MouseEvent.CLICK,playMusic);
+btnStop.addEventListener(MouseEvent.CLICK,stopMusic);
+sldVolume.addEventListener(SliderEvent.CHANGE,changeVolume);
+sldPan.addEventListener(SliderEvent.CHANGE,changePan);
+myMusic.addEventListener(Event.COMPLETE,getSongLength);
+myTimer.addEventListener(TimerEvent.TIMER,updateTime);
+btnPause.addEventListener(MouseEvent.CLICK,pauseMusic);
+
+function pauseMusic(evt:MouseEvent):void
+{
+	songPosition = channel.position;
+	channel.stop();
+}
+function stopMusic(evt:MouseEvent):void
+{
+	channel.stop();
+	songPosition = 0;
+}
+
+function playMusic(evt:MouseEvent):void 
+{
+	channel = myMusic.play(songPosition);
+	myTimer.start();
+}
+
+function changePan(evt:SliderEvent):void
+{
+	sTransform.pan = sldPan.value;
+	channel.soundTransform = sTransform;
+}
+
+function changeVolume(evt:SliderEvent):void
+{
+	sTransform.volume  = sldVolume.value;
+	channel.soundTransform = sTransform;
+}
+function getSongLength(evt:Event):void{
+	lblSongTotalTime.text = convertTime(myMusic.length);
+    lblSongTitle.text = myMusic.id3.songName;
+	lblSongArtist.text = myMusic.id3.artist;
+	if(myMusic.id3.year != null)
+		lblSongYear.text = myMusic.id3.year;
+	else
+		lblSongYear.text = 'Unknown Year';
+}
+
+function convertTime(millis:Number):String
+{
+	var Minutes:Number = (millis%(1000*60*60)/(1000*60));
+	var Seconds:Number = ((millis%(1000*60*60))%(1000*60))/1000;
+		return Math.floor(Minutes) + ":"+ Math.floor(Seconds);
+	if (Math.floor(Minutes)<10)
+	{
+		var displayMinutes:String = '0'+Math.floor(Minutes);
+	}
+	else
+	{
+		var displayMinutes:String = Math.floor(Minutes).toString();
+	}
+	if(Math.floor(Seconds)<10)
+	{
+		var displaySeconds:String = '0'+Math.floor(Seconds);
+	}
+	else
+	{
+		var displaySeconds:String = Math.floor(Seconds).toString();
+	}
+}
+
+function updateTime(evt:TimerEvent):void
+{
+	lblElapsedTime.text = convertTime(channel.position);
+	barRed.height = (channel.rightPeak * 55);
+	barGreen.height = (channel.leftPeak * 55);
+}
